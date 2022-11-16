@@ -32,7 +32,10 @@ fit1 <- glm(label~., family=binomial(link='logit'), data=train)
 pred <- as.numeric(predict(fit1, test, type = 'response') > 0.5)
 
 acc <- pred == test$label
-mean(acc)  # Top: 0.767, bwstain
+mean(acc)  # Top: 0.899, inverseStain
+
+# Accuracy solo gary scale: 0.67
+# Accuracy senza inverse: --
 
 
 # -------------------------------
@@ -50,20 +53,20 @@ plot(cv.lasso)
 fit_min <- glmnet(x, y, alpha = 1, family = "binomial", lambda = cv.lasso$lambda.min)
 pred_min <- as.numeric(predict(fit_min, model.matrix(label~., test)[,-1], type='class'))
 acc_min <- (pred_min == test$label)
-mean(acc_min)  # Top: 0.767, bwstain
+mean(acc_min)  # Top: 0.901, bwstain
 
 # Lambda 1se
 fit_1se <- glmnet(x, y, alpha = 1, family = "binomial", lambda = cv.lasso$lambda.1se)
 pred_1se <- as.numeric(predict(fit_1se, model.matrix(label~., test)[,-1], type='class'))
 acc_1se <- (pred_1se == test$label)
-mean(acc_1se)  # Top: 0.767, bwstain
+mean(acc_1se)  # Top: 0.896, bwstain
 
 
 #-----
 # Plot coeff.
 
-mat <- matrix(coefficients(fit1)[-1], ncol=32, byrow = T)
-data_melt <- melt(mat)  
+mat <- matrix(coefficients(fit_min)[-1], ncol=32, byrow = T)
+data_melt <- melt(abs(mat))  
 
 ggplot(data_melt, aes(X1, X2)) +
   geom_tile(aes(fill = value)) +
