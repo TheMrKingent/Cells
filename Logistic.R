@@ -4,13 +4,26 @@ library(glmnet)
 library(reshape)   
 setwd("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot Big Data/Progetto/Cells")
 
-dat <- read_csv("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot Big Data/Progetto/Cells/dataset/dat_bwstain.csv")
+dat <- read_csv("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot Big Data/Progetto/Cells/dataset/dat_inverseStain.csv")
+
+noise <- matrix(sample(0:10, 27558*1024, replace = T), nrow = 27558)
+dat[,-1] <- dat[,-1] + noise
+
+
 
 # Split train test
 set.seed(200)
 idx <- createDataPartition(dat$label, times=2, p=0.7)
 train <- dat[idx$Resample1, ]
 test <- dat[-idx$Resample1, ]
+
+# Plot test
+mat <- matrix(as.numeric(dat[20001,-2]), ncol=32, byrow = T)
+data_melt <- melt(mat)  
+ggplot(data_melt, aes(X1, X2)) +
+  geom_tile(aes(fill = value)) +
+  theme_void()
+
 
 
 # ---------------------
@@ -29,8 +42,8 @@ x <- model.matrix(label~., train)[,-1]
 y <- train$label
 
 cv.lasso <- cv.glmnet(x=x, y=y, alpha = 1, family = "binomial")
-save(cv.lasso, file = 'cv_lasso_bwstain.RData')
-#load(file = 'cv_lasso_bwstain.RData')
+save(cv.lasso, file = 'cv_lasso_inverseStain.RData')
+#load(file = 'cv_lasso_inverseStain.RData')
 plot(cv.lasso)
 
 # Lambda min
@@ -47,7 +60,7 @@ mean(acc_1se)  # Top: 0.767, bwstain
 
 
 #-----
-# Plot
+# Plot coeff.
 
 mat <- matrix(coefficients(fit1)[-1], ncol=32, byrow = T)
 data_melt <- melt(mat)  

@@ -29,7 +29,6 @@ for cat in [0,1]:
     for name in names:
         
         img = Image.open(os.path.join('data', folders[cat], name))
-        img = img.resize(gt_size)
         
         # Create B/W contrast enhanced
         opt = img.convert(mode='L')
@@ -55,8 +54,9 @@ for cat in [0,1]:
         opt = ImageOps.invert(opt)
         
         # Finalize
+        opt = opt.resize(gt_size)
         array = np.array(opt).reshape(gt_size[0]*gt_size[1])
-        row = np.append(i, array)  # append label
+        row = np.append(cat, array)  # append label
         row_list.append(row)
 
 
