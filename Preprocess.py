@@ -8,11 +8,10 @@ Data preprocess:
 * join mask and grayscale
 '''
 
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageEnhance, ImageOps
 import os
 import numpy as np
 import pandas as pd
-
 
 
 # Set wd to current file's location
@@ -21,72 +20,49 @@ os.chdir(file_path)
 
 gt_size = (32,32)
 row_list = []
-colnames = ['label'] + list(range(gt_size[0]*gt_size[1]))
+folders = ['Uninfected', 'Parasitized']
 
 
-# Uninfected (label = 0)
-names0 = os.listdir(os.path.join('data', 'Uninfected'))
-for name in names0:
-    
-    img = Image.open(os.path.join('data', 'Uninfected', name))
-    img = img.resize(gt_size)
-    
-    # B/W
-    bw = img.convert(mode='L')
-    enhancer = ImageEnhance.Contrast(bw)
-    bw = enhancer.enhance(10)
-    
-    # Mask
-    mask = img
-    pixels_mask = mask.load()
-    for i in range(mask.size[0]): # for every pixel:
-        for j in range(mask.size[1]):
-            if pixels_mask[i,j] == (0,0,0): # if not black:
-                pixels_mask[i,j] = (255, 255, 255) # change to white
-    
-    # Join Mask ove B/W
-    pixels_bw = bw.load()
-    for i in range(mask.size[0]):
-        for j in range(mask.size[1]):
-            if pixels_mask[i,j] == (255, 255, 255):
-                pixels_bw[i,j] = 255
-   
-    array = np.array(bw).reshape(gt_size[0]*gt_size[1])
-    row = np.append(0, array)  # append label 0
-    row_list.append(row)
+for cat in [0,1]:
 
-# Parasitized (label = 1)
-names1 = os.listdir(os.path.join('data', 'Parasitized'))
-for name in names1:
-    img = Image.open(os.path.join('data', 'Parasitized', name))
-    img = img.resize(gt_size)
-    
-    # B/W
-    bw = img.convert(mode='L')
-    enhancer = ImageEnhance.Contrast(bw)
-    bw = enhancer.enhance(10)
-    
-    # Mask
-    mask = img
-    pixels_mask = mask.load()
-    for i in range(mask.size[0]): # for every pixel:
-        for j in range(mask.size[1]):
-            if pixels_mask[i,j] == (0,0,0): # if not black:
-                pixels_mask[i,j] = (255, 255, 255) # change to white
-    
-    # Join Mask ove B/W
-    pixels_bw = bw.load()
-    for i in range(mask.size[0]):
-        for j in range(mask.size[1]):
-            if pixels_mask[i,j] == (255, 255, 255):
-                pixels_bw[i,j] = 255
-   
-    array = np.array(bw).reshape(gt_size[0]*gt_size[1])
-    row = np.append(1, array)  # append label 0
-    row_list.append(row)
+    names = os.listdir(os.path.join('data', folders[cat]))
+    for name in names:
+        
+        img = Image.open(os.path.join('data', folders[cat], name))
+        img = img.resize(gt_size)
+        
+        # Create B/W contrast enhanced
+        opt = img.convert(mode='L')
+        enhancer = ImageEnhance.Contrast(opt)
+        opt = enhancer.enhance(10)
+        
+        # Create Mask
+        mask = img
+        pixels_mask = mask.load()
+        for i in range(mask.size[0]):
+            for j in range(mask.size[1]):
+                if pixels_mask[i,j] == (0,0,0):
+                    pixels_mask[i,j] = (255, 255, 255)
+        
+        # Join Mask over B/W
+        pixels_opt = opt.load()
+        for i in range(mask.size[0]):
+            for j in range(mask.size[1]):
+                if pixels_mask[i,j] == (255, 255, 255):
+                    pixels_opt[i,j] = 255
+        
+        # Invert
+        opt = ImageOps.invert(opt)
+        
+        # Finalize
+        array = np.array(opt).reshape(gt_size[0]*gt_size[1])
+        row = np.append(i, array)  # append label
+        row_list.append(row)
+
 
 # Write Df
+colnames = ['label'] + list(range(gt_size[0]*gt_size[1]))
 df = pd.DataFrame(row_list, columns=colnames)
 
 # Write csv
-df.to_csv('dataset/dat_bwstain.csv', index=False)
+df.to_csv('dataset/dat_inverseStain.csv', index=False)
