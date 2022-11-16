@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 
-# Set wd to current file's location
+# Set wd to source file location
 file_path = os.path.dirname(os.path.abspath(__file__))
 os.chdir(file_path)
 
@@ -53,16 +53,18 @@ for cat in [0,1]:
         # Invert
         opt = ImageOps.invert(opt)
         
-        # Finalize
+        # Resize
         opt = opt.resize(gt_size)
+        
+        # Finalize
         array = np.array(opt).reshape(gt_size[0]*gt_size[1])
         row = np.append(cat, array)  # append label
         row_list.append(row)
 
 
-# Write Df
+# Build Df
 colnames = ['label'] + list(range(gt_size[0]*gt_size[1]))
 df = pd.DataFrame(row_list, columns=colnames)
 
 # Write csv
-df.to_csv('dataset/dat_inverseStain.csv', index=False)
+df.to_csv('dataset/dat_stain.csv', index=False)
