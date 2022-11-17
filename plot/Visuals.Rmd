@@ -1,0 +1,104 @@
+---
+title: "Visuals"
+author: "Mattia Lamberti"
+date: "17/11/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, cache = TRUE}
+knitr::opts_chunk$set(include = FALSE)
+```
+
+
+```{r}
+library(readr)
+library(caret)
+library(glmnet)
+library(reshape) 
+library(ROCit)
+library(ggpubr)
+library(cowplot)
+library(grid)
+library(gridExtra) 
+
+
+setwd("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot Big Data/Progetto/Cells")
+
+dat <- read_csv("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot Big Data/Progetto/Cells/dataset/dat_inverseStain.csv")
+
+set.seed(201)
+noise <- matrix(sample(0:10, 27558*1024, replace = T), nrow = 27558)
+dat[,-1] <- dat[,-1] + noise
+
+idx <- createDataPartition(dat$label, times=2, p=0.7)
+train <- dat[idx$Resample1, ]
+test <- dat[-idx$Resample1, ]
+
+x <- model.matrix(label~., train)[,-1]
+y <- train$label
+
+```
+
+```{r}
+load(file = 'CVobjects/cv_lasso_inverseStain.RData')
+
+fit1 <- glmnet(x, y, family = "binomial", lambda =0)
+fit_min <- glmnet(x, y, alpha = 1, family = "binomial", lambda = cv.lasso$lambda.min)
+fit_1se <- glmnet(x, y, alpha = 1, family = "binomial", lambda = cv.lasso$lambda.1se)
+```
+
+
+```{r fig.height=2, fig.width=2}
+mat_fit <- matrix(coefficients(fit1)[-1], ncol=32, byrow = T)
+data_melt_fit <- melt(abs(mat_fit))
+
+mat_fit_min <- matrix(coefficients(fit_min)[-1], ncol=32, byrow = T)
+data_melt_fit_min <- melt(abs(mat_fit_min))
+
+mat_fit_1se <- matrix(coefficients(fit_1se)[-1], ncol=32, byrow = T)
+data_melt_fit_1se <- melt(abs(mat_fit_1se))
+
+r <- range(abs(c(coefficients(fit1)[-1],
+                 coefficients(fit_min)[-1],
+                 coefficients(fit_1se)[-1])))
+
+
+ggplot(data_melt_fit, aes(X1, X2)) +
+  geom_tile(aes(fill = value)) +
+  scale_fill_continuous(limits=r) +
+  theme_void() + theme(legend.position = 'None')
+
+ggplot(data_melt_fit_min, aes(X1, X2)) +
+  geom_tile(aes(fill = value)) +
+  scale_fill_continuous(limits=r) +
+  theme_void() + theme(legend.position = 'None')
+
+ggplot(data_melt_fit_1se, aes(X1, X2)) +
+  geom_tile(aes(fill = value)) +
+  scale_fill_continuous(limits=r) +
+  theme_void() + theme(legend.position = 'None')
+```
+
+
+```{r fig.height=2, fig.width=1}
+g <- ggplot(data_melt_fit, aes(X1, X2)) +
+  geom_tile(aes(fill = value)) +
+  scale_fill_continuous(limits=r, name = 'Value') +
+  theme_void()
+
+grid.newpage()
+grid.draw(get_legend(g))
+```
+
+```{r}
+plot(cv.lasso)
+```
+
+
+```{r}
+fitted_1se_prob <- as.numeric(predict(fit_1se, model.matrix(label~., test)[,-1], type='response'))
+
+roc <- rocit(score=fitted_1se_prob, class=test$label)
+plot(roc, YIndex=TRUE)
+```
+
