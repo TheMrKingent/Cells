@@ -53,6 +53,13 @@ save(cv.lasso, file = 'CVobjects/cv_lasso_inverseStain.RData')
 load(file = 'CVobjects/cv_lasso_inverseStain.RData')
 plot(cv.lasso)
 
+# Logistic no pen.
+fit1 <- glmnet(x, y, alpha = 1, family = "binomial", lambda = 0)
+pred <- as.numeric(predict(fit1, model.matrix(label~., test)[,-1], type='class'))
+acc <- pred == test$label
+mean(acc)
+
+
 # Lambda min
 fit_min <- glmnet(x, y, alpha = 1, family = "binomial", lambda = cv.lasso$lambda.min)
 pred_min <- as.numeric(predict(fit_min, model.matrix(label~., test)[,-1], type='class'))
