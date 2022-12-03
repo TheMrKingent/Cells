@@ -21,10 +21,11 @@ library(cowplot)
 library(grid)
 library(gridExtra) 
 
-
+setwd("C:/Users/dntgl/Desktop/Cells")
+dat <- read_csv("dataset/dat_inverseStain.csv")
 setwd("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot Big Data/Progetto/Cells")
 
-dat <- read_csv("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot Big Data/Progetto/Cells/dataset/dat_inverseStain.csv")
+
 
 set.seed(201)
 noise <- matrix(sample(0:10, 27558*1024, replace = T), nrow = 27558)
@@ -40,6 +41,7 @@ y <- train$label
 ```
 
 ```{r}
+setwd("C:/Users/dntgl/Desktop/Cells")
 load(file = 'CVobjects/cv_lasso_inverseStain.RData')
 
 fit1 <- glmnet(x, y, family = "binomial", lambda =0)
@@ -49,34 +51,47 @@ fit_1se <- glmnet(x, y, alpha = 1, family = "binomial", lambda = cv.lasso$lambda
 
 
 ```{r fig.height=2, fig.width=2}
-mat_fit <- matrix(coefficients(fit1)[-1], ncol=32, byrow = T)
-data_melt_fit <- melt(abs(mat_fit))
+mat_fit <- mat <- matrix((exp(coefficients(fit1)[-1])-1)*100, ncol=32, byrow = T)
+data_melt_fit <- melt(mat_fit)
 
-mat_fit_min <- matrix(coefficients(fit_min)[-1], ncol=32, byrow = T)
-data_melt_fit_min <- melt(abs(mat_fit_min))
+mat_fit_min <- mat <- matrix((exp(coefficients(fit_min)[-1])-1)*100, ncol=32, byrow = T)
+data_melt_fit_min <- melt(mat_fit_min)
 
-mat_fit_1se <- matrix(coefficients(fit_1se)[-1], ncol=32, byrow = T)
-data_melt_fit_1se <- melt(abs(mat_fit_1se))
+mat_fit_1se <- mat <- matrix((exp(coefficients(fit_1se)[-1])-1)*100, ncol=32, byrow = T)
+data_melt_fit_1se <- melt(mat_fit_1se)
 
-r <- range(abs(c(coefficients(fit1)[-1],
-                 coefficients(fit_min)[-1],
-                 coefficients(fit_1se)[-1])))
+r <- range(c((exp(coefficients(fit1)[-1])-1)*100,
+                 (exp(coefficients(fit1)[-1])-1)*100,
+                 (exp(coefficients(fit1)[-1])-1)*100))
 
 
 ggplot(data_melt_fit, aes(X1, X2)) +
   geom_tile(aes(fill = value)) +
-  scale_fill_continuous(limits=r) +
+  scale_fill_gradient2(low = "blue",
+                       mid = "gray95",
+                       high = "red",
+                       limits=r) +
   theme_void() + theme(legend.position = 'None')
+
 
 ggplot(data_melt_fit_min, aes(X1, X2)) +
   geom_tile(aes(fill = value)) +
-  scale_fill_continuous(limits=r) +
+  scale_fill_gradient2(low = "blue",
+                       mid = "gray95",
+                       high = "red",
+                       limits=r) +
   theme_void() + theme(legend.position = 'None')
+
 
 ggplot(data_melt_fit_1se, aes(X1, X2)) +
   geom_tile(aes(fill = value)) +
-  scale_fill_continuous(limits=r) +
+  scale_fill_gradient2(low = "blue",
+                       mid = "gray95",
+                       high = "red",
+                       limits=r) +
   theme_void() + theme(legend.position = 'None')
+
+
 ```
 
 
