@@ -21,13 +21,11 @@ library(cowplot)
 library(grid)
 library(gridExtra) 
 
-setwd("C:/Users/dntgl/Desktop/Cells")
-dat <- read_csv("dataset/dat_inverseStain.csv")
 setwd("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot Big Data/Progetto/Cells")
+dat <- read_csv("dataset/dat_inverseStain.csv")
 
 
-
-set.seed(201)
+set.seed(200)
 noise <- matrix(sample(0:10, 27558*1024, replace = T), nrow = 27558)
 dat[,-1] <- dat[,-1] + noise
 
@@ -41,7 +39,7 @@ y <- train$label
 ```
 
 ```{r}
-setwd("C:/Users/dntgl/Desktop/Cells")
+setwd("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot Big Data/Progetto/Cells")
 load(file = 'CVobjects/cv_lasso_inverseStain.RData')
 
 fit1 <- glmnet(x, y, family = "binomial", lambda =0)
@@ -90,16 +88,16 @@ ggplot(data_melt_fit_1se, aes(X1, X2)) +
                        high = "red",
                        limits=r) +
   theme_void() + theme(legend.position = 'None')
-
-
 ```
 
 
 ```{r fig.height=2, fig.width=1}
 g <- ggplot(data_melt_fit, aes(X1, X2)) +
   geom_tile(aes(fill = value)) +
-  scale_fill_continuous(limits=r, name = 'Value') +
-  theme_void()
+  scale_fill_gradient2(low = "blue",
+                       mid = "gray95",
+                       high = "red",
+                       limits=r, name = 'Value')
 
 grid.newpage()
 grid.draw(get_legend(g))
