@@ -77,25 +77,35 @@ mean(acc_1se)  # Top: 0.896, bwstain
 # Plot exp(coeff. -1)*100
 
 mat <- matrix((exp(coefficients(fit1)[-1])-1)*100, ncol=32, byrow = T)
-data_melt <- melt(abs(mat))  
+data_melt <- melt(mat)  
 
 ggplot(data_melt, aes(X1, X2)) +
   geom_tile(aes(fill = value)) +
+  scale_fill_gradient2(low = "blue",
+                       mid = "gray95",
+                       high = "red") +
   theme_void()
 
 mat <- matrix((exp(coefficients(fit_min)[-1])-1)*100, ncol=32, byrow = T)
-data_melt <- melt(abs(mat))  
+data_melt <- melt(mat)
 
 ggplot(data_melt, aes(X1, X2)) +
   geom_tile(aes(fill = value)) +
+  scale_fill_gradient2(low = "blue",
+                       mid = "gray95",
+                       high = "red") +
   theme_void()
 
 mat <- matrix((exp(coefficients(fit_1se)[-1])-1)*100, ncol=32, byrow = T)
-data_melt <- melt(abs(mat))  
+data_melt <- melt(mat)
 
 ggplot(data_melt, aes(X1, X2)) +
   geom_tile(aes(fill = value)) +
+  scale_fill_gradient2(low = "blue",
+                       mid = "gray95",
+                       high = "red") +
   theme_void()
+
 
 #----------
 # ROC curve optimal cutoff
