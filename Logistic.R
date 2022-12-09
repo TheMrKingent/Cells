@@ -8,7 +8,7 @@ setwd("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot 
 
 dat <- read_csv("C:/ARCHIVIO/2 - Magistrale/Semestre 3/Advanced statistical modelling fot Big Data/Progetto/Cells/dataset/dat_inverseStain.csv")
 
-set.seed(200)
+set.seed(201)
 noise <- matrix(sample(0:10, 27558*1024, replace = T), nrow = 27558)
 dat[,-1] <- dat[,-1] + noise
 
@@ -27,7 +27,7 @@ ggplot(data_melt, aes(X1, X2)) +
 
 
 
-# ---------------------
+# -------------------------------------------------------------------------------
 # Regressione Logistica
 fit1 <- glm(label~., family=binomial(link='logit'), data=train)
 pred <- as.numeric(predict(fit1, test, type = 'response') > 0.5)
@@ -42,7 +42,7 @@ mean(acc)  # Top: 0.899, inverseStain
 # Accuracy grayscale + contrasto + mask + inverse: 0.899
 
 
-# -------------------------------
+# -------------------------------------------------------------------------------
 # Regressione Logistica penalizz.
 
 x <- model.matrix(label~., train)[,-1]
@@ -73,41 +73,8 @@ acc_1se <- (pred_1se == test$label)
 mean(acc_1se)  # Top: 0.896, bwstain
 
 
-#------------
-# Plot exp(coeff. -1)*100
 
-mat <- matrix((exp(coefficients(fit1)[-1])-1)*100, ncol=32, byrow = T)
-data_melt <- melt(mat)  
-
-ggplot(data_melt, aes(X1, X2)) +
-  geom_tile(aes(fill = value)) +
-  scale_fill_gradient2(low = "blue",
-                       mid = "gray95",
-                       high = "red") +
-  theme_void()
-
-mat <- matrix((exp(coefficients(fit_min)[-1])-1)*100, ncol=32, byrow = T)
-data_melt <- melt(mat)
-
-ggplot(data_melt, aes(X1, X2)) +
-  geom_tile(aes(fill = value)) +
-  scale_fill_gradient2(low = "blue",
-                       mid = "gray95",
-                       high = "red") +
-  theme_void()
-
-mat <- matrix((exp(coefficients(fit_1se)[-1])-1)*100, ncol=32, byrow = T)
-data_melt <- melt(mat)
-
-ggplot(data_melt, aes(X1, X2)) +
-  geom_tile(aes(fill = value)) +
-  scale_fill_gradient2(low = "blue",
-                       mid = "gray95",
-                       high = "red") +
-  theme_void()
-
-
-#----------
+# -------------------------------------------------------------------------------
 # ROC curve optimal cutoff
 
 confusionMatrix(as.factor(pred_1se), as.factor(test$label), positive='1')  # 0.899
@@ -124,14 +91,34 @@ confusionMatrix(as.factor(pred_1se_optimal), as.factor(test$label), positive='1'
 
 
 
+# -------------------------------------------------------------------------------
+# Time evaluate simulation
 
+intercept<- coef(fit_1se)[1]
+coef <- matrix(coefficients(fit_1se)[-1], ncol=32, byrow = T)
 
+l<-list()
+for (i in 1:nrow(test)){    l[[i]]<-matrix(as.numeric(test[i,-1]), ncol=32, byrow=T)
+}
 
+# Matrix pair mult method
+s<- Sys.time()
+log_odds<-c()
+for (i in 1:length(l)){
+  log_odds<-c(log_odds,intercept+sum(l[[i]]*coef))
+}
+t1<-as.numeric(Sys.time() - s)
 
+# Vectorize to row standard method
+s<- Sys.time()
+pred<-c()
+for (i in 1:nrow(test)){
+  matrix(as.numeric(test[i,]), nrow=1, ncol=1024, byrow=T)
+}
+pred<-c(pred, predict(fit_1se, model.matrix(label~., test)[,-1]))
+t2<-as.numeric(Sys.time() - s)
+t2/t1
 
-
-
-
-
-
-
+# Rete: 1.5 s
+# Mat pair mult: 0.06 s
+# Vectorize: 21.2

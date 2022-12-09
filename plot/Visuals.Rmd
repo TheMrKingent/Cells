@@ -103,6 +103,48 @@ grid.newpage()
 grid.draw(get_legend(g))
 ```
 
+```{r  fig.height=2, fig.width=2}
+
+# Original image
+img<-matrix(as.numeric(test[6500,-1]), ncol=32, byrow=T)
+data_melt <- melt(img)  
+ggplot(data_melt, aes(X1, X2)) +
+  geom_tile(aes(fill = value)) +
+  scale_fill_gradient2(low = "blue",
+                       mid = "gray95",
+                       high = "red",
+                       limits=c(0,265))+
+  theme_void()+
+  theme(legend.position = "None")
+
+mat <- matrix((exp(coefficients(fit_1se)[-1])-1)*100, ncol=32, byrow = T)
+data_melt <- melt(mat)
+
+# Coefficients
+ggplot(data_melt, aes(X1, X2)) +
+  geom_tile(aes(fill = value)) +
+  scale_fill_gradient2(low = "blue",
+                       mid = "gray95",
+                       high = "red") +
+  theme_void() +
+  theme(legend.position = "None")
+
+# Product
+intercept<- coef(fit_1se)[1]
+coef <- matrix(coefficients(fit_1se)[-1], ncol=32, byrow = T)
+p<-img*coef
+
+data_melt <- melt(p)  
+ggplot(data_melt, aes(X1, X2)) +
+  geom_tile(aes(fill = value)) +
+  scale_fill_gradient2(low = "blue",
+                       mid = "gray95",
+                       high = "red")+
+  theme_void()+
+  theme(legend.position = "None")
+```
+
+
 ```{r}
 plot(cv.lasso)
 ```
