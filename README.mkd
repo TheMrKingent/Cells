@@ -1,1 +1,9 @@
-Malaria cells image GLM classifier
+# Malaria cells image GLM classifier
+
+![mosaic](plot/mosaic.png)
+
+Just a Uni project, it distinguishes between malaria-infected and healthy cells using a simple logistic classifier and some pre-processing.
+
+That is to say, you don't always need a super deep neural network (which performs better, but not by much!)
+
+Read the [paper](CellsPaper.pdf)!
